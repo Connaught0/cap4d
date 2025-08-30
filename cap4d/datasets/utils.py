@@ -135,15 +135,15 @@ def get_bbox_from_verts(verts_2d, vert_mask):
     head_verts = verts_2d[vert_mask]
     head_bbox = [head_verts[..., 0].min(), head_verts[..., 1].min(), head_verts[..., 0].max(), head_verts[..., 1].max()]
     crop_box = get_square_bbox(np.array(head_bbox), border_margin=CROP_MARGIN)
-
     return np.array(crop_box)
 
 
 def load_flame_verts_and_cam(
     flame_skinner: CAP4DFlameSkinner,
     flame_item: Dict[str, np.ndarray],
+    is_ref: bool,
 ):
-    flame_out = compute_flame(flame_skinner, flame_item)
+    flame_out = compute_flame(flame_skinner, flame_item, is_ref)
 
     verts_2d = flame_out["verts_2d"][0, 0]
     offsets_3d = flame_out["offsets_3d"][0]

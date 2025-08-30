@@ -13,7 +13,7 @@ class ReferenceDataset(CAP4DInferenceDataset):
         downsample_ratio=8,
     ):
         super().__init__(resolution, downsample_ratio)
-        
+        self.is_ref = True
         self.load_flame_params(data_path)
 
     def load_flame_params(

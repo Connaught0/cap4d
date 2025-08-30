@@ -16,6 +16,9 @@ from gaussianavatars.scene.gaussian_model import GaussianModel
 import roma
 import numpy as np
 
+# import debugpy
+# debugpy.listen(5678)
+# debugpy.wait_for_client()
 
 def render(
     viewpoint_camera, 
@@ -69,13 +72,13 @@ def render(
     # print(meta["radii"].shape)
     if meta["means2d"].requires_grad:
         meta["means2d"].retain_grad()
-
+    meta["radii"] = meta["radii"][0,:,0]
     return {
         "render": rgb_image,
         "alpha": alphas[0].permute(2, 0, 1),
         "viewspace_points": meta["means2d"],
-        "visibility_filter" : meta["radii"][0] > 0,
-        "radii": meta["radii"][0],
+        "visibility_filter" : meta["radii"] > 0,
+        "radii": meta["radii"],
         "depth": depth_image,
     }
 

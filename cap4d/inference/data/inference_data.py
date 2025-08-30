@@ -1,7 +1,8 @@
 import numpy as np
 from torch.utils.data import Dataset
 import einops
-
+import torchvision.utils as tvu
+import torch
 from cap4d.flame.flame import CAP4DFlameSkinner
 from cap4d.datasets.utils import (
     load_frame, 
@@ -34,6 +35,7 @@ class CAP4DInferenceDataset(Dataset):
         self.flame_list = None
         self.ref_extr = None
         self.data_path = None
+        self.is_ref = False
 
     def __len__(self):
         assert self.flame_list is not None, "self.flame_list not properly initialized"
@@ -45,7 +47,9 @@ class CAP4DInferenceDataset(Dataset):
         verts_2d, offsets_3d, intrinsics, extrinsics = load_flame_verts_and_cam(
             self.flame_skinner,
             flame_item,
+            self.is_ref,
         )
+        
         crop_box = get_bbox_from_verts(verts_2d, self.head_vertex_ids)
         flame_item["crop_box"] = crop_box
 
@@ -55,6 +59,8 @@ class CAP4DInferenceDataset(Dataset):
             img_dir_path = flame_item["img_dir_path"]
             timestep_id = flame_item["timestep_id"]
             img = load_frame(img_dir_path, timestep_id)
+            vis_img = img.copy()
+            tvu.save_image(torch.from_numpy(img).permute(2,0,1).float() / 255.0, f"debug_img_{timestep_id}.png")
             del flame_item["img_dir_path"]  # delete string from flame dict so that it can be collated
             if "bg_dir_path" in flame_item:
                 bg = load_frame(flame_item["bg_dir_path"], timestep_id)
@@ -65,6 +71,36 @@ class CAP4DInferenceDataset(Dataset):
             out_crop_mask = np.ones_like(img[..., [0]])
             img = apply_bg(img, bg)
             img = crop_image(img, crop_box, bg_value=255)
+            # Create visualization overlay on image
+ 
+            #                y1
+            # crop box x1，        x2,
+            #                y2
+
+            import cv2
+            # Draw all vertices as small dots
+            # Note: OpenCV's origin (0,0) is at top-left, while OpenGL's is at bottom-left
+            # So we need to flip the y-coordinate relative to image height
+            h = vis_img.shape[0]
+            for v in verts_2d:
+                y = int(v[1])  # Flip y coordinate
+                x = int(v[0])      # x coordinate doesn't need flipping
+                cv2.circle(vis_img, (x, y), radius=1, color=(0,255,0), thickness=-1)
+            
+            # Draw head vertices as red dots
+            for v in verts_2d[self.head_vertex_ids]:
+                y = int(v[1])  # Flip y coordinate
+                x = int(v[0])      # x coordinate doesn't need flipping
+                cv2.circle(vis_img, (x, y), radius=2, color=(0,0,255), thickness=-1)
+            
+            # Draw crop box
+            x1, y1, x2, y2 = crop_box
+            # Flip y coordinates for crop box (x coordinates stay the same)
+            cv2.rectangle(vis_img, (int(x1), int(y1)), (int(x2), int(y2)), color=(255,0,0), thickness=2)
+            
+            # Save visualization
+            tvu.save_image(torch.from_numpy(vis_img).permute(2,0,1).float() / 255.0, f"debug_vis_{timestep_id}.png")
+            tvu.save_image(torch.from_numpy(img).permute(2,0,1).float() / 255.0, f"debug_crop_img_{timestep_id}.png")
             out_crop_mask = crop_image(out_crop_mask, crop_box, bg_value=0)
             img = rescale_image(img, self.resolution)
             img = ((img / 127.5) - 1.0).astype(np.float32)

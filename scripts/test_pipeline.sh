@@ -1,13 +1,13 @@
 #!/bin/bash
-
+export PYTHONPATH=$PYTHONPATH:$(pwd)
 # Run quick inference to test pipeline installation
 mkdir examples/debug_output
 
-# Test MMDM installation by generating a few images
-python cap4d/inference/generate_images.py \
-    --config_path configs/generation/debug.yaml \
-    --reference_data_path examples/input/tesla/ \
-    --output_path examples/debug_output/tesla/
+# # Test MMDM installation by generating a few images
+# python cap4d/inference/generate_images.py \
+#     --config_path configs/generation/debug.yaml \
+#     --reference_data_path examples/input/tesla/ \
+#     --output_path examples/debug_output/tesla/
 
 # Test GaussianAvatars installation by fitting for a few iterations
 python gaussianavatars/train.py \

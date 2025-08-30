@@ -74,7 +74,7 @@ class GenerationDataset(CAP4DInferenceDataset):
         self.n_samples = n_samples
         self.yaw_range = yaw_range
         self.pitch_range = pitch_range
-
+        self.is_ref = False
         self.flame_dicts = self.init_flame_params(
             generation_data_path,
             reference_flame_item,
@@ -105,7 +105,9 @@ class GenerationDataset(CAP4DInferenceDataset):
         ref_rot = reference_flame_item["rot"]
         ref_tra = reference_flame_item["tra"]
         ref_tra_cv = ref_tra.copy()
-        ref_tra_cv[:, 1:] = -ref_tra_cv[:, 1:]  # p3d to opencv
+        # ref_tra_cv[:, 1:] = -ref_tra_cv[:, 1:]  # p3d to opencv
+        ref_tra_gl = ref_tra.copy()
+        ref_tra_gl[..., 2] = -ref_tra_gl[..., 2]
 
         flame_list = []
 
@@ -113,7 +115,7 @@ class GenerationDataset(CAP4DInferenceDataset):
         for expr, eye_rot in zip(gen_data["expr"][:n_samples], gen_data["eye_rot"][:n_samples]):
             yaw, pitch = elipsis_sample(yaw_range, pitch_range)
 
-            rotated_extr = pivot_camera_intrinsic(ref_extr[0], ref_tra_cv[0], [yaw, pitch])
+            rotated_extr = pivot_camera_intrinsic(ref_extr[0], ref_tra_gl[0], [yaw, pitch])
 
             flame_dict = {
                 "shape": ref_shape,

@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from flowface.flame.flame import FlameSkinner, FLAME_N_SHAPE, FLAME_N_EXPR
-from flowface.flame.utils import batch_rodrigues, OPENCV2PYTORCH3D, transform_vertices, project_vertices
+from flowface.flame.utils import batch_rodrigues, OPENCV2PYTORCH3D, OPENGL2PYTORCH3D, transform_vertices, project_vertices
 
 from cap4d.flame.mouth import FlameMouth
 
@@ -102,7 +102,10 @@ class CAP4DFlameSkinner(FlameSkinner):
             v_transforms = torch.cat([v_transforms, jaw_transforms], dim=1)
 
         # apply base transform separately
-        base_rot = batch_rodrigues(flame_sequence["rot"])
+        if len(flame_sequence["rot"].shape) == 3:
+            base_rot = flame_sequence["rot"]
+        else:
+            base_rot = batch_rodrigues(flame_sequence["rot"])
         base_tra = flame_sequence["tra"][..., None]
         verts = (base_rot @ verts.permute(0, 2, 1) + base_tra).permute(0, 2, 1)
 
@@ -124,6 +127,7 @@ class CAP4DFlameSkinner(FlameSkinner):
 def compute_flame(
     flame: CAP4DFlameSkinner, 
     fit_3d: Dict[str, np.ndarray],
+    is_ref: bool,
 ):
     flame_sequence = {
         "shape": torch.tensor(fit_3d["shape"]).float(),
@@ -157,12 +161,18 @@ def compute_flame(
 
     # transform into OpenCV camera coordinate convention
     verts_3d_cv = transform_vertices(OPENCV2PYTORCH3D[None].to(verts_3d.device), verts_3d)  # [N_t V 3]
+    verts_3d_gl = transform_vertices(OPENGL2PYTORCH3D[None].to(verts_3d.device), verts_3d)  # [N_t V 3]
     # project vertices to cameras
-    verts_2d = project_vertices(verts_3d_cv, cam_parameters)  # [N_c N_t V 3]
+    if is_ref:
+        verts_2d = project_vertices(verts_3d_gl, cam_parameters)  # [N_c N_t V 3]
+        print("gl_ref_triger")
+    else:
+        verts_2d = project_vertices(verts_3d_cv, cam_parameters)  # [N_c N_t V 3]
 
     return {
         "verts_3d": verts_3d.cpu().numpy(),
         "verts_3d_cv": verts_3d_cv.cpu().numpy(),
+        "verts_3d_gl": verts_3d_gl.cpu().numpy(),
         "verts_2d": verts_2d.cpu().numpy(),
         "offsets_3d": offsets_3d.cpu().numpy(),
     }
