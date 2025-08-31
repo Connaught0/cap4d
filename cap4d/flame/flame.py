@@ -162,13 +162,13 @@ def compute_flame(
     # transform into OpenCV camera coordinate convention
     verts_3d_cv = transform_vertices(OPENCV2PYTORCH3D[None].to(verts_3d.device), verts_3d)  # [N_t V 3]
     verts_3d_gl = transform_vertices(OPENGL2PYTORCH3D[None].to(verts_3d.device), verts_3d)  # [N_t V 3]
-    # project vertices to cameras
-    if is_ref:
-        verts_2d = project_vertices(verts_3d_gl, cam_parameters)  # [N_c N_t V 3]
-        print("gl_ref_triger")
-    else:
-        verts_2d = project_vertices(verts_3d_cv, cam_parameters)  # [N_c N_t V 3]
+    # # project vertices to cameras
+    # if is_ref:
+    verts_2d = project_vertices(verts_3d_gl, cam_parameters)  # [N_c N_t V 3]
+    #     print("gl_ref_triger")
 
+    # else:
+    # verts_2d = project_vertices(verts_3d_cv, cam_parameters)  # [N_c N_t V 3]
     return {
         "verts_3d": verts_3d.cpu().numpy(),
         "verts_3d_cv": verts_3d_cv.cpu().numpy(),
