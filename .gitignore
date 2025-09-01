@@ -197,5 +197,7 @@ cython_debug/
 *.jpg
 
 examples/output/
+examples/debug_output/
+
 data/weights/mmdm/checkpoints/cap4d_mmdm_100k.ckpt
 data/assets/flame/flame2023_no_jaw.pkl

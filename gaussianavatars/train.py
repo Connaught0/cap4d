@@ -32,9 +32,9 @@ try:
 except ImportError:
     TENSORBOARD_FOUND = False
 
-# import debugpy
-# debugpy.listen(5678)
-# debugpy.wait_for_client()
+import debugpy
+debugpy.listen(5678)
+debugpy.wait_for_client()
 
 def training(
     source_paths,
@@ -145,7 +145,6 @@ def training(
 
         losses['l1'] = l1_loss(image, gt_image) * (1.0 - opt_params["lambda_dssim"]) * (1.0 - lambda_lpips)
         losses['ssim'] = (1.0 - ssim(image, gt_image)) * opt_params["lambda_dssim"] * (1.0 - lambda_lpips)
-        print(opt_params["metric_xyz"])
         if opt_params["metric_xyz"]:
             losses['xyz'] = F.relu((gaussians._xyz*gaussians.face_scaling[gaussians.binding])[visibility_filter.all(dim=-1)] - opt_params["threshold_xyz"]).norm(dim=1).mean() * opt_params["lambda_xyz"]
         else:

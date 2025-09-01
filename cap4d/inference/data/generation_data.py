@@ -5,9 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from cap4d.inference.data.inference_data import CAP4DInferenceDataset
 
-import debugpy
-debugpy.listen(5678)
-debugpy.wait_for_client()
+
 
 def pivot_camera_intrinsic(extrinsics, target, angles, distance_factor=1.):
     """
@@ -269,6 +267,7 @@ class GenerationDataset(CAP4DInferenceDataset):
         ref_resolution = reference_flame_item["resolutions"]
         ref_rot = reference_flame_item["rot"]# if grandma dataset opengl camera input
         ref_tra = reference_flame_item["tra"]# if grandma dataset opengl camera input
+        ref_expr = reference_flame_item["expr"]
         ref_tra_cv = ref_tra.copy()
         ref_tra_cv[:, 1:] = -ref_tra_cv[:, 1:]  # p3d to opencv
         ref_tra_gl = ref_tra.copy()
