@@ -17,7 +17,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 
-from flowface.flame.utils import batch_rodrigues, OPENCV2PYTORCH3D
+from flowface.flame.utils import batch_rodrigues, OPENCV2PYTORCH3D, OPENGL2PYTORCH3D
 
 from cap4d.datasets.utils import (
     adjust_intrinsics_crop,
